@@ -242,9 +242,21 @@ Gradle: Sistema avanzado de automatización de compilación y gestión de depend
 
 Dashboard Principal: Muestra la tarjeta del Hospital con "Todos los sistemas operativos" en verde brillante y el listado interactivo con barras horizontales de progreso históricas de cada uno de los 21 servicios del hospital.
 
+<img width="1839" height="736" alt="image" src="https://github.com/user-attachments/assets/141a7089-3d45-4c8a-a068-c686571c10ab" />
+
+<img width="1598" height="836" alt="image" src="https://github.com/user-attachments/assets/dbebddc5-df3a-41dc-b492-3ec7f5b51b94" />
+
+
+
 Detalles del Sistema Clínico: Al pulsar sobre "Historia Clínica Electrónica" se despliega la métrica de uso de memoria RAM, Disco Duro e historial de auditoría cronológico vertical.
 
+<img width="1596" height="736" alt="image" src="https://github.com/user-attachments/assets/f8cc7b43-8ec1-40d0-92a4-8f5e35243a04" />
+
+
 Interfaz de Acceso Administrativo: Formulario de login limpio con seguridad de validación instantánea.
+
+<img width="1497" height="878" alt="image" src="https://github.com/user-attachments/assets/fd2251df-9f73-46ad-8379-6675db2771ad" />
+
 
 ## 🧠 Análisis y Reflexión Personal
 
