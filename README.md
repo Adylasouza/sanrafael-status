@@ -57,18 +57,6 @@ Contraseña: 123
 
 El proyecto está diseñado bajo los fundamentos de la Arquitectura Hexagonal (Ports & Adapters). El núcleo o corazón del negocio (core) se encuentra completamente libre de dependencias de frameworks externos como Spring, comunicándose a través de interfaces (ports) que son implementadas por adaptadores externos (adapters).
 
-/
-├── .gitattributes
-├── .gitignore
-├── build.gradle
-├── gradlew
-├── gradlew.bat
-├── README.md
-├── settings.gradle
-├── gradle
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
 └── src
     ├── main
     │   ├── java
