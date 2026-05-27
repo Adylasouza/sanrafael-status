@@ -119,6 +119,7 @@ src/
     └── java/
         └── dev/adylaoliveira/sanrafael/
             └── SanrafaelStatusApplicationTests.java
+```
 
 📊 Tabla de Endpoints y Direcciones del Sistema
 
