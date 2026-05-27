@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Hospital San Rafael - Clinical Status Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "status-degraded": "#F4A03E",
+                        "status-operational": "#10A37F",
+                        "status-outage": "#EF4444",
+                        "primary": "#250562",
+                        "surface-container": "#e5eeff",
+                        "on-surface": "#0b1c30",
+                        "on-surface-variant": "#494551",
+                        "outline-variant": "#cac4d2",
+                        "outline": "#7a7582",
+                        "background": "#f8f9ff"
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .uptime-bar-segment {
+            width: 4px;
+            height: 24px;
+            border-radius: 1px;
+            margin: 0 1px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+        body {
+            background-color: #F8FAFC;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+
+<nav class="fixed top-0 w-full z-50 bg-white border-b border-outline-variant h-16 shadow-sm">
+    <div class="max-w-[1200px] mx-auto h-full flex items-center justify-between px-6">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showMainDashboard()">
+            <span class="material-symbols-outlined text-primary text-3xl">local_hospital</span>
+            <span class="font-bold text-primary text-xl">Hospital San Rafael</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="hidden md:flex gap-6 items-center">
+                <a class="text-primary font-bold text-sm cursor-pointer" onclick="showMainDashboard()">Dashboard Público</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors text-sm cursor-pointer" onclick="showGlobalHistory()">Historial Global</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors text-sm font-semibold border border-outline-variant px-3 py-1.5 rounded" href="/auth/login">Acceso Admin</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="pt-24 pb-32 max-w-[1200px] mx-auto px-6">
+
+    <div id="view-dashboard" class="space-y-8">
+        <section>
+            <div id="hero-banner" class="bg-status-operational/10 border border-status-operational rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all shadow-sm">
+                <div class="flex items-center gap-6 text-center md:text-left">
+                    <div id="hero-icon-container" class="bg-status-operational text-white p-4 rounded-full">
+                        <span id="hero-icon" class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                    <div>
+                        <h1 id="hero-title" class="text-2xl font-bold text-status-operational mb-1">Cargando estado del sistema...</h1>
+                        <p id="hero-description" class="text-on-surface-variant">Por favor, espere mientras recopilamos la información en tiempo real.</p>
+                    </div>
+                </div>
+                <div class="text-center md:text-right border-t md:border-t-0 md:border-l border-outline-variant pt-4 md:pt-0 md:pl-10 min-w-[150px]">
+                    <p class="text-xs uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">Estado Global</p>
+                    <p id="hero-uptime-badge" class="text-2xl font-bold text-primary">ONLINE</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8 space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-lg font-bold text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined">medical_services</span>
+                        Sistemas Clínicos y Operativos
+                    </h2>
+                    <span id="update-timestamp" class="text-xs text-on-surface-variant font-medium">Actualizando...</span>
+                </div>
+                <div class="grid grid-cols-1 gap-4" id="systems-container"></div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-4">
+                <h2 class="text-lg font-bold text-primary flex items-center gap-2">
+                    <span class="material-symbols-outlined">warning</span>
+                    Incidentes Activos
+                </h2>
+                <div id="incidents-sidebar" class="bg-white border border-outline-variant rounded-xl p-6 text-center flex flex-col items-center justify-center min-h-[250px] shadow-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-details" class="hidden space-y-6">
+        <button onclick="showMainDashboard()" class="flex items-center gap-2 text-primary font-semibold hover:underline mb-4">
+            <span class="material-symbols-outlined">arrow_back</span> Volver al Dashboard
+        </button>
+
+        <div class="bg-white border border-outline-variant rounded-xl p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant pb-4 mb-6">
+                <div>
+                    <h1 id="details-product-name" class="text-3xl font-bold text-primary">Nombre del Sistema</h1>
+                    <p class="text-xs text-on-surface-variant mt-1">ID del Sistema: <span id="details-product-id" class="font-mono"></span></p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="details-product-badge-dot" class="w-3 h-3 rounded-full"></span>
+                    <span id="details-product-status-text" class="font-bold uppercase tracking-wider text-sm"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-slate-50 border border-outline-variant rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-semibold text-on-surface-variant">Disponibilidad Histórica</span>
+                        <span class="material-symbols-outlined text-primary">analytics</span>
+                    </div>
+                    <p id="details-metric-availability" class="text-3xl font-bold text-primary">0.00%</p>
+                    <p class="text-xs text-outline mt-1">Calculado sobre reportes acumulados</p>
+                </div>
+
+                <div class="bg-slate-50 border border-outline-variant rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-semibold text-on-surface-variant">Uso de Memoria RAM</span>
+                        <span class="material-symbols-outlined text-primary">memory</span>
+                    </div>
+                    <p id="details-metric-ram" class="text-3xl font-bold text-primary">0%</p>
+                    <div class="w-full bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="details-bar-ram" class="bg-primary h-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-outline-variant rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-semibold text-on-surface-variant">Uso de Disco Duro</span>
+                        <span class="material-symbols-outlined text-primary">hard_drive</span>
+                    </div>
+                    <p id="details-metric-disk" class="text-3xl font-bold text-primary">0%</p>
+                    <div class="w-full bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="details-bar-disk" class="bg-primary h-full transition-all" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined">history</span>
+                    Historial Cronológico de Reportes y Eventos
+                </h3>
+                <div id="details-reports-timeline" class="space-y-4 relative border-l-2 border-slate-200 pl-6 ml-3">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-history" class="hidden space-y-6">
+        <button onclick="showMainDashboard()" class="flex items-center gap-2 text-primary font-semibold hover:underline mb-4">
+            <span class="material-symbols-outlined">arrow_back</span> Volver al Dashboard
+        </button>
+        <h1 class="text-3xl font-bold text-primary">Historial Global de Incidentes</h1>
+        <p class="text-on-surface-variant">Registro histórico consolidado de fallas y advertencias de toda la infraestructura hospitalaria.</p>
+
+        <div id="global-history-container" class="space-y-4">
+        </div>
+    </div>
+
+</main>
+
+<script>
+    // Armazenamento global dos dados para transições de telas rápidas
+    let cachedData = null;
+
+    async function loadSystems() {
+        try {
+            const response = await fetch("/status");
+            cachedData = await response.json();
+
+            updateHeroBanner(cachedData.globalStatus);
+            renderMainDashboard(cachedData.products);
+            renderIncidentsSidebar(cachedData.products);
+
+            document.getElementById("update-timestamp").innerText = `Sincronizado: ${new Date().toLocaleTimeString()}`;
+        } catch (error) {
+            console.error("Error cargando datos:", error);
+            document.getElementById("update-timestamp").innerText = "Error de conexión";
+        }
+    }
+
+    function updateHeroBanner(globalStatus) {
+        const banner = document.getElementById("hero-banner");
+        const iconContainer = document.getElementById("hero-icon-container");
+        const icon = document.getElementById("hero-icon");
+        const title = document.getElementById("hero-title");
+        const description = document.getElementById("hero-description");
+        const badge = document.getElementById("hero-uptime-badge");
+
+        if (globalStatus === "CONDITION_ACTIVE") {
+            title.innerText = "Todos los sistemas operativos";
+            description.innerText = "Los sistemas clínicos y administrativos funcionan correctamente a nivel global.";
+            badge.innerText = "ONLINE";
+            badge.className = "text-2xl font-bold text-status-operational";
+            banner.className = "bg-status-operational/10 border border-status-operational rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all shadow-sm";
+            iconContainer.className = "bg-status-operational text-white p-4 rounded-full";
+            icon.innerText = "check_circle";
+        } else if (globalStatus === "CONDITION_WARNING") {
+            title.innerText = "Sistemas con advertencias";
+            description.innerText = "Algunos subsistemas presentan degradación parcial o intermitencia técnica.";
+            badge.innerText = "WARN";
+            badge.className = "text-2xl font-bold text-status-degraded";
+            banner.className = "bg-status-degraded/10 border border-status-degraded rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all shadow-sm";
+            iconContainer.className = "bg-status-degraded text-white p-4 rounded-full";
+            icon.innerText = "warning";
+        } else {
+            title.innerText = "Incidentes detectados";
+            description.innerText = "Uno o más servicios de información críticos presentan fallas operativas.";
+            badge.innerText = "ERROR";
+            badge.className = "text-2xl font-bold text-status-outage";
+            banner.className = "bg-status-outage/10 border border-status-outage rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all shadow-sm";
+            iconContainer.className = "bg-status-outage text-white p-4 rounded-full animate-pulse";
+            icon.innerText = "report";
+        }
+    }
+
+    function renderMainDashboard(products) {
+        const container = document.getElementById("systems-container");
+        container.innerHTML = "";
+
+        const iconMap = {
+            "Historia Clínica Electrónica": "clinical_notes",
+            "Sistema de Laboratorio Clínico": "biotech",
+            "Sistema PACS Radiológico": "radiology",
+            "Portal de Pacientes": "person",
+            "Sistema de Urgencias": "emergency"
+        };
+
+        products.forEach(product => {
+            let statusText = "Operativo", statusColor = "text-status-operational", statusDot = "bg-status-operational";
+
+            if (product.status === "CONDITION_WARNING") {
+                statusText = "Advertencia"; statusColor = "text-status-degraded"; statusDot = "bg-status-degraded";
+            } else if (product.status === "CONDITION_ERROR") {
+                statusText = "Falla Crítica"; statusColor = "text-status-outage"; statusDot = "bg-status-outage";
+            }
+
+            const icon = iconMap[product.name] || "medical_services";
+
+            // Renderiza o cartão clicável conforme a HU-02
+            container.innerHTML += `
+            <div onclick="viewProductDetails('${product.id}')" class="bg-white border border-outline-variant rounded-lg p-4 hover:shadow-md transition-all cursor-pointer group">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-100 p-2 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span class="material-symbols-outlined">${icon}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-[16px] text-on-surface group-hover:text-primary transition-colors">${product.name}</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full ${statusDot}"></span>
+                                <span class="text-xs font-bold ${statusColor} uppercase tracking-wider">${statusText}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:items-end">
+                        <span class="text-[11px] text-outline font-semibold uppercase">Disponibilidad</span>
+                        <span class="font-bold text-primary text-lg">${product.availability || "100.00%"}</span>
+                    </div>
+                </div>
+
+                <div class="w-full flex justify-between items-end overflow-hidden">
+                    <div class="flex gap-[2px] w-full overflow-x-auto custom-scrollbar pb-1">
+                        ${Array.from({length: 45}).map(() => `
+                            <div class="uptime-bar-segment ${statusDot} opacity-80 hover:opacity-100 transition-opacity"></div>
+                        `).join('')}
+                    </div>
+                    <span class="text-[10px] font-bold text-outline ml-3 uppercase whitespace-nowrap">90 días</span>
+                </div>
+            </div>`;
+        });
+    }
+
+    function renderIncidentsSidebar(products) {
+        const sidebar = document.getElementById("incidents-sidebar");
+        const failing = products.filter(p => p.status === "CONDITION_ERROR" || p.status === "CONDITION_WARNING");
+
+        if (failing.length > 0) {
+            let listHtml = failing.map(p => `
+                <div class="border-b border-slate-100 pb-2 mb-2 last:border-0 text-left w-full">
+                    <p class="text-sm font-bold text-slate-800">${p.name}</p>
+                    <p class="text-xs font-semibold ${p.status === 'CONDITION_ERROR' ? 'text-status-outage':'text-status-degraded'} uppercase">${p.status === 'CONDITION_ERROR' ? 'Falla':'Degradado'}</p>
+                </div>
+            `).join('');
+            sidebar.innerHTML = `
+                <span class="material-symbols-outlined text-3xl text-status-degraded mb-2">warning</span>
+                <p class="text-sm font-bold text-slate-700 mb-3">Eventos Técnicos Detectados</p>
+                <div class="w-full max-h-[200px] overflow-y-auto">${listHtml}</div>
+            `;
+        } else {
+            sidebar.innerHTML = `
+                <span class="material-symbols-outlined text-4xl text-status-operational mb-3" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                <p class="text-sm text-status-operational font-bold">Infraestructura Estable</p>
+                <p class="text-xs text-outline mt-1">No se detectan alertas en los servicios críticos.</p>
+            `;
+        }
+    }
+
+    // LÓGICA DE DETALHES DO PRODUTO (HU-02)
+    function viewProductDetails(productId) {
+        if (!cachedData) return;
+        const product = cachedData.products.find(p => p.id === productId);
+        if (!product) return;
+
+        document.getElementById("view-dashboard").classList.add("hidden");
+        document.getElementById("view-history").classList.add("hidden");
+        document.getElementById("view-details").classList.remove("hidden");
+
+        document.getElementById("details-product-name").innerText = product.name;
+        document.getElementById("details-product-id").innerText = product.id;
+        document.getElementById("details-metric-availability").innerText = product.availability || "100.00%";
+
+        // Definição de Cores do Status atual do Produto
+        const dot = document.getElementById("details-product-badge-dot");
+        const txt = document.getElementById("details-product-status-text");
+        if (product.status === "CONDITION_ERROR") {
+            dot.className = "w-3 h-3 rounded-full bg-status-outage animate-pulse";
+            txt.innerText = "Falla Crítica"; txt.className = "font-bold uppercase text-status-outage";
+        } else if (product.status === "CONDITION_WARNING") {
+            dot.className = "w-3 h-3 rounded-full bg-status-degraded";
+            txt.innerText = "Advertencia"; txt.className = "font-bold uppercase text-status-degraded";
+        } else {
+            dot.className = "w-3 h-3 rounded-full bg-status-operational";
+            txt.innerText = "Operativo"; txt.className = "font-bold uppercase text-status-operational";
+        }
+
+        // Renderizar Métricas de RAM e DISCO do último relatório técnico disponível
+        const timeline = document.getElementById("details-reports-timeline");
+        timeline.innerHTML = "";
+
+        if (product.reports && product.reports.length > 0) {
+            const lastReport = product.reports[product.reports.length - 1];
+
+            // Atualiza cartões numéricos superiores
+            const ram = lastReport.ramPercentage || lastReport.ramUsagePercentage || 0;
+            const disk = lastReport.discoPercentage || lastReport.diskUsagePercentage || 0;
+
+            document.getElementById("details-metric-ram").innerText = `${ram}%`;
+            document.getElementById("details-bar-ram").style.width = `${ram}%`;
+            document.getElementById("details-metric-disk").innerText = `${disk}%`;
+            document.getElementById("details-bar-disk").style.width = `${disk}%`;
+
+            // Monta linha do tempo cronológica
+            product.reports.forEach(report => {
+                const rDate = new Date(report.date).toLocaleDateString();
+                let eventsHtml = "";
+
+                if (report.events && report.events.length > 0) {
+                    report.events.forEach(ev => {
+                        let evColor = "bg-status-operational";
+                        if (ev.condition === "CONDITION_ERROR") evColor = "bg-status-outage";
+                        if (ev.condition === "CONDITION_WARNING") evColor = "bg-status-degraded";
+
+                        eventsHtml += `
+                            <div class="flex items-start gap-3 bg-slate-50 p-2.5 rounded border border-slate-100 text-xs mt-2">
+                                <span class="w-2 h-2 rounded-full ${evColor} mt-1.5 shrink-0"></span>
+                                <div>
+                                    <p class="font-bold text-slate-700 uppercase">${ev.condition}</p>
+                                    <p class="text-slate-600 mt-0.5">${ev.description}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    eventsHtml = `<p class="text-xs text-status-operational font-semibold mt-1">✓ Sistema operando sin novedades en esta fecha.</p>`;
+                }
+
+                timeline.innerHTML += `
+                <div class="relative mb-6">
+                    <span class="absolute -left-[31px] top-1 bg-primary text-white w-4 h-4 rounded-full flex items-center justify-center border-4 border-white shadow-sm"></span>
+                    <div class="bg-white p-4 border border-outline-variant rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-bold text-primary">${rDate}</span>
+                            <span class="text-xs text-outline font-medium">RAM: ${report.ramPercentage || report.ramUsagePercentage || 0}% | Disco: ${report.discoPercentage || report.diskUsagePercentage || 0}%</span>
+                        </div>
+                        <div class="space-y-1">${eventsHtml}</div>
+                    </div>
+                </div>`;
+            });
+        } else {
+            document.getElementById("details-metric-ram").innerText = "0%";
+            document.getElementById("details-bar-ram").style.width = "0%";
+            document.getElementById("details-metric-disk").innerText = "0%";
+            document.getElementById("details-bar-disk").style.width = "0%";
+            timeline.innerHTML = `<p class="text-sm text-outline italic">No existen reportes acumulados para este sistema en el servidor.</p>`;
+        }
+    }
+
+    // LÓGICA DO HISTÓRICO GLOBAL (HU-03)
+    function showGlobalHistory() {
+        if (!cachedData) return;
+        document.getElementById("view-dashboard").classList.add("hidden");
+        document.getElementById("view-details").classList.add("hidden");
+        document.getElementById("view-history").classList.remove("hidden");
+
+        const container = document.getElementById("global-history-container");
+        container.innerHTML = "";
+
+        let hasIncident = false;
+
+        cachedData.products.forEach(product => {
+            if (product.reports && product.reports.length > 0) {
+                product.reports.forEach(report => {
+                    if (report.events && report.events.length > 0) {
+                        hasIncident = true;
+                        let eventsList = report.events.map(ev => `
+                            <div class="p-2 bg-slate-50 border-l-4 ${ev.condition === 'CONDITION_ERROR' ? 'border-status-outage':'border-status-degraded'} rounded text-xs">
+                                <span class="font-bold uppercase text-slate-700">${ev.condition}:</span> ${ev.description}
+                            </div>
+                        `).join('');
+
+                        container.innerHTML += `
+                            <div class="bg-white border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col md:flex-row justify-between gap-4">
+                                <div class="space-y-2 w-full">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-primary">${product.name}</span>
+                                        <span class="text-xs text-outline font-semibold">${new Date(report.date).toLocaleDateString()}</span>
+                                    </div>
+                                    <div class="space-y-1.5">${eventsList}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+        });
+
+        if (!hasIncident) {
+            container.innerHTML = `
+                <div class="text-center p-12 bg-white border border-outline-variant rounded-xl">
+                    <span class="material-symbols-outlined text-4xl text-status-operational mb-2">verified</span>
+                    <p class="font-bold text-slate-700">Limpieza Absoluta de Errores</p>
+                    <p class="text-xs text-outline">No se registran incidentes pasados en la base de datos de auditoría.</p>
+                </div>`;
+        }
+    }
+
+    function showMainDashboard() {
+        document.getElementById("view-details").classList.add("hidden");
+        document.getElementById("view-history").classList.add("hidden");
+        document.getElementById("view-dashboard").classList.remove("hidden");
+        loadSystems();
+    }
+
+    // Inicialização automática
+    loadSystems();
+    setInterval(loadSystems, 5000); // Polling em tempo real a cada 5s (HU-13)
+</script>
+</body>
+</html>

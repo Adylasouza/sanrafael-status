@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Hospital San Rafael - Acceso Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { primary: "#250562", background: "#f8f9ff" } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background font-sans flex items-center justify-center min-h-screen p-6">
+
+<div class="bg-white border border-slate-200 rounded-2xl shadow-xl max-w-md w-full p-8 space-y-6">
+
+    <div class="text-center space-y-2">
+        <div class="inline-flex bg-purple-50 text-primary p-3 rounded-full">
+            <span class="material-symbols-outlined text-4xl">local_hospital</span>
+        </div>
+        <h1 class="text-2xl font-bold text-primary">Hospital San Rafael</h1>
+        <p class="text-sm text-slate-500">Panel de Control Técnico</p>
+    </div>
+
+    <div id="error-alert" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm p-3.5 rounded-lg flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg">error</span>
+        <span id="error-message">Credenciales incorrectas.</span>
+    </div>
+
+    <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+        <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Usuario</label>
+            <div class="relative">
+                <span class="absolute left-3 top-2.5 text-slate-400 material-symbols-outlined text-xl">person</span>
+                <input type="text" id="username" required class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary focus:bg-white transition-all" placeholder="admin"/>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Contraseña</label>
+            <div class="relative">
+                <span class="absolute left-3 top-2.5 text-slate-400 material-symbols-outlined text-xl">lock</span>
+                <input type="password" id="password" required class="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary focus:bg-white transition-all" placeholder="••••••••"/>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-primary hover:bg-opacity-90 text-white font-semibold rounded-lg py-2.5 text-sm shadow-md transition-all mt-2">
+            Iniciar Sesión
+        </button>
+    </form>
+
+    <div class="text-center pt-2">
+        <a href="/dashboard" class="text-xs text-slate-500 hover:text-primary underline flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Volver al Dashboard Público
+        </a>
+    </div>
+</div>
+
+<script>
+    async function handleLogin(event) {
+        event.preventDefault();
+        const errorAlert = document.getElementById("error-alert");
+        errorAlert.classList.add("hidden");
+
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/center+json", "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!response.ok) {
+                throw new Error("Credenciales inválidas");
+            }
+
+            const data = await response.json();
+
+            // Salva o token JWT de forma segura no navegador da sessão administrativa
+            localStorage.setItem("sanrafael_token", data.token);
+
+            // Redireciona de volta para o Painel principal (Agora autenticado localmente)
+            window.location.href = "/dashboard";
+
+        } catch (error) {
+            errorAlert.classList.remove("hidden");
+        }
+    }
+</script>
+</body>
+</html>
