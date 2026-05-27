@@ -186,7 +186,6 @@
 </main>
 
 <script>
-    // Armazenamento global dos dados para transições de telas rápidas
     let cachedData = null;
 
     async function loadSystems() {
@@ -263,7 +262,6 @@
 
             const icon = iconMap[product.name] || "medical_services";
 
-            // Renderiza o cartão clicável conforme a HU-02
             container.innerHTML += `
             <div onclick="viewProductDetails('${product.id}')" class="bg-white border border-outline-variant rounded-lg p-4 hover:shadow-md transition-all cursor-pointer group">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -287,9 +285,13 @@
 
                 <div class="w-full flex justify-between items-end overflow-hidden">
                     <div class="flex gap-[2px] w-full overflow-x-auto custom-scrollbar pb-1">
-                        ${Array.from({length: 45}).map(() => `
-                            <div class="uptime-bar-segment ${statusDot} opacity-80 hover:opacity-100 transition-opacity"></div>
-                        `).join('')}
+                        ${Array.from({length: 45}).map((_, index) => {
+                let barColor = statusDot;
+                if (product.status !== "CONDITION_ACTIVE" && index < 42) {
+                    barColor = "bg-status-operational";
+                }
+                return `<div class="uptime-bar-segment ${barColor} opacity-80 hover:opacity-100 transition-opacity"></div>`;
+            }).join('')}
                     </div>
                     <span class="text-[10px] font-bold text-outline ml-3 uppercase whitespace-nowrap">90 días</span>
                 </div>
@@ -316,13 +318,12 @@
         } else {
             sidebar.innerHTML = `
                 <span class="material-symbols-outlined text-4xl text-status-operational mb-3" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                <p class="text-sm text-status-operational font-bold">Infraestructura Estable</p>
+                <p class="text-sm text-status-operational font-bold">Infraestructura Stable</p>
                 <p class="text-xs text-outline mt-1">No se detectan alertas en los servicios críticos.</p>
             `;
         }
     }
 
-    // LÓGICA DE DETALHES DO PRODUTO (HU-02)
     function viewProductDetails(productId) {
         if (!cachedData) return;
         const product = cachedData.products.find(p => p.id === productId);
@@ -336,7 +337,6 @@
         document.getElementById("details-product-id").innerText = product.id;
         document.getElementById("details-metric-availability").innerText = product.availability || "100.00%";
 
-        // Definição de Cores do Status atual do Produto
         const dot = document.getElementById("details-product-badge-dot");
         const txt = document.getElementById("details-product-status-text");
         if (product.status === "CONDITION_ERROR") {
@@ -350,24 +350,22 @@
             txt.innerText = "Operativo"; txt.className = "font-bold uppercase text-status-operational";
         }
 
-        // Renderizar Métricas de RAM e DISCO do último relatório técnico disponível
         const timeline = document.getElementById("details-reports-timeline");
         timeline.innerHTML = "";
 
         if (product.reports && product.reports.length > 0) {
-            const lastReport = product.reports[product.reports.length - 1];
+            const sortedReports = [...product.reports].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const lastReport = sortedReports[sortedReports.length - 1];
 
-            // Atualiza cartões numéricos superiores
-            const ram = lastReport.ramPercentage || lastReport.ramUsagePercentage || 0;
-            const disk = lastReport.discoPercentage || lastReport.diskUsagePercentage || 0;
+            const ram = lastReport.ramPercentage || lastReport.ramUsagePercentage || lastReport.ramUsage || 0;
+            const disk = lastReport.discoPercentage || lastReport.diskUsagePercentage || lastReport.diskUsage || lastReport.disco || 0;
 
             document.getElementById("details-metric-ram").innerText = `${ram}%`;
             document.getElementById("details-bar-ram").style.width = `${ram}%`;
             document.getElementById("details-metric-disk").innerText = `${disk}%`;
             document.getElementById("details-bar-disk").style.width = `${disk}%`;
 
-            // Monta linha do tempo cronológica
-            product.reports.forEach(report => {
+            sortedReports.forEach(report => {
                 const rDate = new Date(report.date).toLocaleDateString();
                 let eventsHtml = "";
 
@@ -397,7 +395,7 @@
                     <div class="bg-white p-4 border border-outline-variant rounded-lg shadow-sm">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-sm font-bold text-primary">${rDate}</span>
-                            <span class="text-xs text-outline font-medium">RAM: ${report.ramPercentage || report.ramUsagePercentage || 0}% | Disco: ${report.discoPercentage || report.diskUsagePercentage || 0}%</span>
+                            <span class="text-xs text-outline font-medium">RAM: ${report.ramPercentage || report.ramUsagePercentage || report.ramUsage || 0}% | Disco: ${report.discoPercentage || report.diskUsagePercentage || report.diskUsage || report.disco || 0}%</span>
                         </div>
                         <div class="space-y-1">${eventsHtml}</div>
                     </div>
@@ -412,7 +410,6 @@
         }
     }
 
-    // LÓGICA DO HISTÓRICO GLOBAL (HU-03)
     function showGlobalHistory() {
         if (!cachedData) return;
         document.getElementById("view-dashboard").classList.add("hidden");
@@ -468,9 +465,8 @@
         loadSystems();
     }
 
-    // Inicialização automática
     loadSystems();
-    setInterval(loadSystems, 5000); // Polling em tempo real a cada 5s (HU-13)
+    setInterval(loadSystems, 5000);
 </script>
 </body>
 </html>

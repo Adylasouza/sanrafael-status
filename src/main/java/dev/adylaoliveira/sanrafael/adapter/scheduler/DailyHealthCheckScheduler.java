@@ -1,101 +1,55 @@
 package dev.adylaoliveira.sanrafael.adapter.scheduler;
 
 import dev.adylaoliveira.sanrafael.core.entity.Product;
-import dev.adylaoliveira.sanrafael.core.dto.ReportDTO;
-import dev.adylaoliveira.sanrafael.core.port.HealthReportGateway;
 import dev.adylaoliveira.sanrafael.core.port.ProductRepository;
-import dev.adylaoliveira.sanrafael.service.ProductService;
-
-import jakarta.annotation.PostConstruct;
+import dev.adylaoliveira.sanrafael.service.StatusRequestService;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.net.URL;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class DailyHealthCheckScheduler {
 
-    private final ScheduledExecutorService scheduler =
-            Executors.newScheduledThreadPool(1);
-
     private final ProductRepository repository;
-    private final HealthReportGateway gateway;
-    private final ProductService service;
+    private final StatusRequestService statusService;
 
-    public DailyHealthCheckScheduler(
-            ProductRepository repository,
-            HealthReportGateway gateway,
-            ProductService service
-    ) {
+    // Injeção de dependências via construtor (Boa prática da Arquitetura Hexagonal)
+    public DailyHealthCheckScheduler(ProductRepository repository, StatusRequestService statusService) {
         this.repository = repository;
-        this.gateway = gateway;
-        this.service = service;
+        this.statusService = statusService;
     }
 
-    @PostConstruct
-    public void startRoutine() {
+    /**
+     * Executa a checagem automática diária/periódica de saúde dos sistemas do hospital.
+     * Cron configurado para rodar de forma automatizada (ex: todos os dias à meia-noite, ou periodicamente).
+     */
+    @Scheduled(cron = "0 0 0 * * ?") // Altere ou mantenha o tempo conforme o padrão do seu projeto
+    public void executeDailyCheck() {
+        List<Product> products = repository.findAllProducts();
 
-        System.out.println("Scheduler iniciado.");
+        if (products == null || products.isEmpty()) {
+            return;
+        }
 
-        final Runnable task = () -> {
+        // Contador para distribuir as requisições entre as portas dos containers Docker (8081 a 8085)
+        int portOffset = 0;
 
-            System.out.println("Iniciando verificación diaria de productos...");
+        for (Product product : products) {
+            // RESOLUÇÃO DO ERRO: Como o Record Product não tem URL fixa, geramos a URL dinâmica
+            // apontando para os containers Docker configurados (portas 8081 até 8085)
+            int targetPort = 8081 + (portOffset % 5);
+            String mockDockerUrl = "http://localhost:" + targetPort + "/health";
 
             try {
-
-                List<Product> products = repository.findAllProducts();
-
-                for (Product product : products) {
-
-                    try {
-
-                        ReportDTO report = gateway.getHealthReport(
-                                product.healthURL()
-                        );
-
-                        service.addAutomaticReport(
-                                product.id(),
-                                report
-                        );
-
-                        System.out.println(
-                                "Report salvo para: "
-                                        + product.name()
-                        );
-
-                    } catch (Exception e) {
-
-                        System.out.println(
-                                "Error verificando producto: "
-                                        + product.name()
-                        );
-                    }
-                }
-
-                System.out.println(
-                        "Finalizei coleta de status dos produtos."
-                );
-
+                // Dispara o serviço que consome o Gateway REST e atualiza o estado do produto
+                statusService.addAutomaticReport(product.id(), mockDockerUrl);
             } catch (Exception e) {
-
-                System.out.println(
-                        "Erro geral do scheduler."
-                );
+                // Impede que a falha de conexão de um container derrube a verificação dos outros sistemas
+                System.err.println("Error consultando el estado para el sistema " + product.name() + " en " + mockDockerUrl + ": " + e.getMessage());
             }
-        };
 
-        // executa UMA vez quando inicia
-        task.run();
-
-        // depois executa 1 vez por dia
-        scheduler.scheduleAtFixedRate(
-                task,
-                24,
-                24,
-                TimeUnit.HOURS
-        );
+            portOffset++;
+        }
     }
 }
