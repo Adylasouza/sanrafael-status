@@ -74,8 +74,7 @@ src/
 │   │       │   ├── controller/
 │   │       │   │   ├── AuthController.java
 │   │       │   │   ├── DashboardController.java
-│   │       │   │   ├── ProductController.java
-│   │       │   │   └── ViewController.java
+│   │       │   │   └── ProductController.java
 │   │       │   ├── repository/inmemory/
 │   │       │   │   └── InMemoryProductRepository.java
 │   │       │   └── scheduler/
