@@ -58,72 +58,67 @@ Contraseña: 123
 El proyecto está diseñado bajo los fundamentos de la Arquitectura Hexagonal (Ports & Adapters). El núcleo o corazón del negocio (core) se encuentra completamente libre de dependencias de frameworks externos como Spring, comunicándose a través de interfaces (ports) que son implementadas por adaptadores externos (adapters).
 
 
-└── src/
-    ├── main/
-    │   ├── java/
-    │   │   └── dev/
-    │   │       └── adylaoliveira/
-    │   │           └── sanrafael/
-    │   │               ├── StatusApplication.java
-    │   │               ├── adapter/
-    │   │               │   ├── api/
-    │   │               │   │   └── rest/
-    │   │               │   │       ├── HealthEventResponse.java
-    │   │               │   │       ├── HealthResponse.java
-    │   │               │   │       └── RestHealthReportGateway.java
-    │   │               │   ├── config/
-    │   │               │   │   └── DataLoader.java
-    │   │               │   ├── controller/
-    │   │               │   │   ├── AuthController.java
-    │   │               │   │   ├── DashboardController.java
-    │   │               │   │   ├── ProductController.java
-    │   │               │   │   └── ViewController.java
-    │   │               │   ├── repository/
-    │   │               │   │   └── inmemory/
-    │   │               │   │       └── InMemoryProductRepository.java
-    │   │               │   └── scheduler/
-    │   │               │       └── DailyHealthCheckScheduler.java
-    │   │               ├── core/
-    │   │               │   ├── constant/
-    │   │               │   │   └── Condition.java
-    │   │               │   ├── dto/
-    │   │               │   │   ├── CreateProductDTO.java
-    │   │               │   │   ├── ProductDetailDTO.java
-    │   │               │   │   ├── ProductListResponseDTO.java
-    │   │               │   │   ├── ProductResponseDTO.java
-    │   │               │   │   ├── ProductStatusDTO.java
-    │   │               │   │   ├── ReportDTO.java
-    │   │               │   │   └── SystemStatusDTO.java
-    │   │               │   ├── entity/
-    │   │               │   │   ├── Event.java
-    │   │               │   │   ├── Product.java
-    │   │               │   │   ├── Report.java
-    │   │               │   │   └── User.java
-    │   │               │   ├── exception/
-    │   │               │   │   ├── GlobalExceptionHandler.java
-    │   │               │   │   └── NotFoundException.java
-    │   │               │   ├── port/
-    │   │               │   │   ├── HealthReportGateway.java
-    │   │               │   │   └── ProductRepository.java
-    │   │               │   └── security/
-    │   │               │       ├── JwtFilter.java
-    │   │               │       ├── JwtService.java
-    │   │               │       └── SecurityConfig.java
-    │   │               └── service/
-    │   │                   ├── ProductService.java
-    │   │                   └── StatusRequestService.java
-    │   └── resources/
-    │       ├── application.properties
-    │       └── templates/
-    │           ├── admin.html
-    │           ├── dashboard.html
-    │           └── login.html
-    └── test/
-        └── java/
-            └── dev/
-                └── adylaoliveira/
-                    └── sanrafael/
-                        └── SanrafaelStatusApplicationTests.java
+```text
+src/
+├── main/
+│   ├── java/
+│   │   └── dev/adylaoliveira/sanrafael/
+│   │       ├── StatusApplication.java
+│   │       ├── adapter/
+│   │       │   ├── api/rest/
+│   │       │   │   ├── HealthEventResponse.java
+│   │       │   │   ├── HealthResponse.java
+│   │       │   │   └── RestHealthReportGateway.java
+│   │       │   ├── config/
+│   │       │   │   └── DataLoader.java
+│   │       │   ├── controller/
+│   │       │   │   ├── AuthController.java
+│   │       │   │   ├── DashboardController.java
+│   │       │   │   ├── ProductController.java
+│   │       │   │   └── ViewController.java
+│   │       │   ├── repository/inmemory/
+│   │       │   │   └── InMemoryProductRepository.java
+│   │       │   └── scheduler/
+│   │       │       └── DailyHealthCheckScheduler.java
+│   │       ├── core/
+│   │       │   ├── constant/
+│   │       │   │   └── Condition.java
+│   │       │   ├── dto/
+│   │       │   │   ├── CreateProductDTO.java
+│   │       │   │   ├── ProductDetailDTO.java
+│   │       │   │   ├── ProductListResponseDTO.java
+│   │       │   │   ├── ProductResponseDTO.java
+│   │       │   │   ├── ProductStatusDTO.java
+│   │       │   │   ├── ReportDTO.java
+│   │       │   │   └── SystemStatusDTO.java
+│   │       │   ├── entity/
+│   │       │   │   ├── Event.java
+│   │       │   │   ├── Product.java
+│   │       │   │   ├── Report.java
+│   │       │   │   └── User.java
+│   │       │   ├── exception/
+│   │       │   │   ├── GlobalExceptionHandler.java
+│   │       │   │   └── NotFoundException.java
+│   │       │   ├── port/
+│   │       │   │   ├── HealthReportGateway.java
+│   │       │   │   └── ProductRepository.java
+│   │       │   └── security/
+│   │       │       ├── JwtFilter.java
+│   │       │       ├── JwtService.java
+│   │       │       └── SecurityConfig.java
+│   │       └── service/
+│   │           ├── ProductService.java
+│   │           └── StatusRequestService.java
+│   └── resources/
+│       ├── application.properties
+│       └── templates/
+│           ├── admin.html
+│           ├── dashboard.html
+│           └── login.html
+└── test/
+    └── java/
+        └── dev/adylaoliveira/sanrafael/
+            └── SanrafaelStatusApplicationTests.java
 
 📊 Tabla de Endpoints y Direcciones del Sistema
 
