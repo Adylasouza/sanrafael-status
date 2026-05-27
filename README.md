@@ -57,35 +57,36 @@ Contraseña: 123
 
 El proyecto está diseñado bajo los fundamentos de la Arquitectura Hexagonal (Ports & Adapters). El núcleo o corazón del negocio (core) se encuentra completamente libre de dependencias de frameworks externos como Spring, comunicándose a través de interfaces (ports) que son implementadas por adaptadores externos (adapters).
 
-└── src
-    ├── main
-    │   ├── java
-    │   │   └── dev
-    │   │       └── adylaoliveira
-    │   │           └── sanrafael
+
+└── src/
+    ├── main/
+    │   ├── java/
+    │   │   └── dev/
+    │   │       └── adylaoliveira/
+    │   │           └── sanrafael/
     │   │               ├── StatusApplication.java
-    │   │               ├── adapter
-    │   │               │   ├── api
-    │   │               │   │   └── rest
+    │   │               ├── adapter/
+    │   │               │   ├── api/
+    │   │               │   │   └── rest/
     │   │               │   │       ├── HealthEventResponse.java
     │   │               │   │       ├── HealthResponse.java
     │   │               │   │       └── RestHealthReportGateway.java
-    │   │               │   ├── config
+    │   │               │   ├── config/
     │   │               │   │   └── DataLoader.java
-    │   │               │   ├── controller
+    │   │               │   ├── controller/
     │   │               │   │   ├── AuthController.java
     │   │               │   │   ├── DashboardController.java
     │   │               │   │   ├── ProductController.java
     │   │               │   │   └── ViewController.java
-    │   │               │   ├── repository
-    │   │               │   │   └── inmemory
+    │   │               │   ├── repository/
+    │   │               │   │   └── inmemory/
     │   │               │   │       └── InMemoryProductRepository.java
-    │   │               │   └── scheduler
+    │   │               │   └── scheduler/
     │   │               │       └── DailyHealthCheckScheduler.java
-    │   │               ├── core
-    │   │               │   ├── constant
+    │   │               ├── core/
+    │   │               │   ├── constant/
     │   │               │   │   └── Condition.java
-    │   │               │   ├── dto
+    │   │               │   ├── dto/
     │   │               │   │   ├── CreateProductDTO.java
     │   │               │   │   ├── ProductDetailDTO.java
     │   │               │   │   ├── ProductListResponseDTO.java
@@ -93,35 +94,35 @@ El proyecto está diseñado bajo los fundamentos de la Arquitectura Hexagonal (P
     │   │               │   │   ├── ProductStatusDTO.java
     │   │               │   │   ├── ReportDTO.java
     │   │               │   │   └── SystemStatusDTO.java
-    │   │               │   ├── entity
+    │   │               │   ├── entity/
     │   │               │   │   ├── Event.java
     │   │               │   │   ├── Product.java
     │   │               │   │   ├── Report.java
     │   │               │   │   └── User.java
-    │   │               │   ├── exception
+    │   │               │   ├── exception/
     │   │               │   │   ├── GlobalExceptionHandler.java
     │   │               │   │   └── NotFoundException.java
-    │   │               │   ├── port
+    │   │               │   ├── port/
     │   │               │   │   ├── HealthReportGateway.java
     │   │               │   │   └── ProductRepository.java
-    │   │               │   └── security
+    │   │               │   └── security/
     │   │               │       ├── JwtFilter.java
     │   │               │       ├── JwtService.java
     │   │               │       └── SecurityConfig.java
-    │   │               └── service
+    │   │               └── service/
     │   │                   ├── ProductService.java
     │   │                   └── StatusRequestService.java
-    │   └── resources
+    │   └── resources/
     │       ├── application.properties
-    │       └── templates
+    │       └── templates/
     │           ├── admin.html
     │           ├── dashboard.html
     │           └── login.html
-    └── test
-        └── java
-            └── dev
-                └── adylaoliveira
-                    └── sanrafael
+    └── test/
+        └── java/
+            └── dev/
+                └── adylaoliveira/
+                    └── sanrafael/
                         └── SanrafaelStatusApplicationTests.java
 
 📊 Tabla de Endpoints y Direcciones del Sistema
